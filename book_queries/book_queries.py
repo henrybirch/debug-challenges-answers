@@ -33,19 +33,19 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
     ) -> List[Tuple[Word, Word, int]]:
         word_distances: List[int] = []
         ids_considered: Set[Tuple[int, int]] = set()
-        for i in range(len(sentence)):
-            for j in range(len(sentence)):
+        for i, word_1 in enumerate(sentence):
+            for j, word_2 in enumerate(sentence):
+                if i == j:
+                    continue
+
                 id = tuple(sorted((i, j)))
 
-                if i == j or id in ids_considered:
+                if id in ids_considered:
                     continue
 
                 ids_considered.add(id)
 
-                word_1 = sentence[i].lower()
-                word_2 = sentence[j].lower()
-
-                ordered_words = tuple(sorted((word_1, word_2)))
+                ordered_words = tuple(sorted((word_1.lower(), word_2.lower())))
 
                 distance = abs(i - j) - 1
                 word_distances.append(ordered_words + (distance,))
@@ -57,32 +57,28 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
         word_pair_counts_distances: Dict[
             Tuple[Word, Word], Tuple[int, int]
         ] = dict()  # {(word_1, word_2) : (count, sum_distance)}
-        for record in word_distances:
-            (word_1, word_2, distance) = record
-            word_pair_counts_distances[(word_1, word_2)] = tuple(
-                map(
-                    sum,
-                    zip(
-                        word_pair_counts_distances.get(
-                            (word_1, word_2), (0, 0)
-                        ),
-                        (1, distance),
-                    ),
-                )
+        for word_1, word_2, distance in word_distances:
+            count, sum_distance = word_pair_counts_distances.get(
+                (word_1, word_2), (0, 0)
+            )
+            word_pair_counts_distances[(word_1, word_2)] = (
+                count + 1,
+                sum_distance + distance,
             )
         return [
             (word_1, word_2, sum_distance / count)
-            for (
-                (word_1, word_2),
-                (count, sum_distance),
+            for (word_1, word_2), (
+                count,
+                sum_distance,
             ) in word_pair_counts_distances.items()
         ]
 
-    def flatten(l: List[List]):
-        return [item for sublist in l for item in sublist]
-
     return reduce_word_distances(
-        flatten(map(get_word_distances_for_sentence, book)),
+        [
+            word_distances
+            for sentence in book
+            for word_distances in get_word_distances_for_sentence(sentence)
+        ]
     )
 
 
