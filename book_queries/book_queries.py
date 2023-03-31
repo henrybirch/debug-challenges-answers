@@ -9,16 +9,7 @@
 # they will not be in a record together in the list.
 
 # Note that one word can be in a sentence more than once.
-
-# He also wants a function that calculates the average locations of words
-# found within a book as a float. e.g. if a word is the first word in a book it
-# will have a score of 0.00. If the last, 1.00.
-#
-# If the word only occurs twice, once as the first word, once as the last.
-# It will have a score of 0.50.
-
 from typing import List, Tuple, Set, Dict
-import operator
 
 Word = str
 Sentence = List[Word]
