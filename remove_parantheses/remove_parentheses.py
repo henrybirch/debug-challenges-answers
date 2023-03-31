@@ -12,10 +12,10 @@ The example above would return:
 
 
 def remove_parentheses(s):
-    lvl, out = 1, []
+    lvl, out = 0, []
     for c in s:
-        lvl -= c == "("
+        lvl += c == "("
         if not lvl:
             out.append(c)
-        lvl += c == ")"
+        lvl -= c == ")"
     return "".join(out)

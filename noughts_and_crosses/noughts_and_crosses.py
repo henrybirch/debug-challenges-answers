@@ -4,7 +4,7 @@ from typing import Tuple, Union
 # Noughts and Crosses implementation
 # Familiarise yourself with the types and data structures that are defined
 # Then get all of the tests passing
-# Don't assume anything works: use print statements to check things work
+# Don't assume anything works: use print statements and make your own mini tests
 
 # Don't change the interface. Just the implementation of the already existing methods.
 
@@ -67,37 +67,60 @@ class Game:
         def get_empty_row():
             return [None, None, None]
 
-        self.frame = get_empty_row() * 3
+        self.frame = [get_empty_row(), get_empty_row(), get_empty_row()]
         self.last_placed_marker = None
 
     def place_marker(self, coordinates: Coordinates, marker: Marker) -> None:
-        self.frame[coordinates.x][coordinates.y] = marker
-        self.last_placed_marker = marker
         if self.last_placed_marker == marker:
             raise WrongMoveOrderError
+
+        if (
+            coordinates.y > 2
+            or coordinates.y < 0
+            or coordinates.x > 2
+            or coordinates.y < 0
+        ):
+            raise InvalidCoordinatesError
+        if self.frame[coordinates.y][coordinates.x] != None:
+            raise SquareAlreadyOccupiedError
+
+        if self.get_game_outcome() != None:
+            raise GameAlreadyFinishedError
+
+        self.frame[coordinates.y][coordinates.x] = marker
+        self.last_placed_marker = marker
 
     # Returns all lines that are used to calculate the game outcome (all rows, all columns, etc)
     @staticmethod
     def get_all_lines() -> list[list[Coordinates]]:
-        rows = [Coordinates(x, y) for y in range(3) for x in range(3)]
-        columns = [Coordinates(x, y) for x in range(3) for y in range(3)]
+        rows = [[Coordinates(x, y) for y in range(3)] for x in range(3)]
+        columns = [[Coordinates(x, y) for x in range(3)] for y in range(3)]
         diagonal1 = [Coordinates(0, 0), Coordinates(1, 1), Coordinates(2, 2)]
         diagonal2 = [Coordinates(0, 2), Coordinates(1, 1), Coordinates(2, 0)]
-        return rows + columns + diagonal1 + diagonal2
+        return rows + columns + [diagonal1] + [diagonal2]
 
     # None -> game not finished
     def get_game_outcome(self) -> None | Tuple[Outcome, None | Marker]:
-        current_frame_lines = [
-            self.frame[coordinates.x][coordinates.y]
-            for coordinates in self.__get_all_lines()
-        ]
+        def get_all_frame_lines():
+            def get_square(coordinates: Coordinates) -> Union[None, Marker]:
+                return self.frame[coordinates.y][coordinates.x]
+
+            def get_frame_line(
+                line: list[Coordinates],
+            ) -> list[None | Marker]:
+                return [get_square(coordinates) for coordinates in line]
+
+            return list(map(get_frame_line, self.get_all_lines()))
+
+        current_frame_lines = get_all_frame_lines()
         # ^^^^^
-        # It's type should be list[list[None | Marker]]. Represents all lines used
-        # to calculate game outcome.
+        # Should be a list of three-length lists. It defines every line
+        # (e.g. a row, a diagonal or a column) that is used to calculate the outcome.
+        # It's type should be list[list[None | Marker]]
 
         def is_winner(marker: Marker):
             for line in current_frame_lines:
-                if any([marker == square for square in line]):
+                if all([marker == square for square in line]):
                     return True
             return False
 
@@ -106,16 +129,13 @@ class Game:
         if is_winner(Marker.O):
             return (Outcome.Win, Marker.O)
 
-        if all(
-            [
-                line == [Marker.X, Marker.X, Marker.X]
-                for line in current_frame_lines
-            ]
-        ) or all(
-            [
-                line == [Marker.O, Marker.O, Marker.O]
-                for line in current_frame_lines
-            ]
-        ):
+        def is_draw():
+            for line in current_frame_lines:
+                if any([square == None for square in line]):
+                    return False
+            return True
+
+        if is_draw():
             return (Outcome.Draw, None)
+
         return None
