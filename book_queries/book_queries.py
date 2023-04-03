@@ -15,7 +15,6 @@ Word = str
 Sentence = List[Word]
 Book = List[Sentence]
 ProximityRecord = Tuple[Word, Word, float]
-LocationRecord = Tuple[Word, float]
 
 
 def get_proximity_records(book: Book) -> List[ProximityRecord]:
