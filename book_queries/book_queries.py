@@ -44,7 +44,7 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
 
     def reduce_word_distances(
         word_distances: List[Tuple[Word, Word, int]]
-    ) -> List[Tuple[Word, Word, float]]:
+    ) -> List[ProximityRecord]:
         word_pair_counts_distances: Dict[
             Tuple[Word, Word], Tuple[int, int]
         ] = dict()  # {(word_1, word_2) : (count, sum_distance)}
