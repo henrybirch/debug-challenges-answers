@@ -22,7 +22,7 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
     def get_word_distances_for_sentence(
         sentence: Sentence,
     ) -> List[Tuple[Word, Word, int]]:
-        word_distances: List[int] = []
+        word_distances: List[Tuple[Word, Word, int]] = []
         ids_considered: Set[Tuple[int, int]] = set()
         for i, word_1 in enumerate(sentence):
             for j, word_2 in enumerate(sentence):
@@ -76,8 +76,4 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
     )
 
 
-print(
-    get_proximity_records(
-        [["dsafsadf", "dsafsadf", "dsafsadf"], ["abba", "dbc", "abba"]]
-    )
-)
+print(get_proximity_records([["abba", "abba"], ["baab", "abba", "baab"]]))
