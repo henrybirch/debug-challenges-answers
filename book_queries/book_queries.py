@@ -64,12 +64,15 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
             ) in word_pair_counts_distances.items()
         ]
 
-    return reduce_word_distances(
-        [
-            word_distances
-            for sentence in book
-            for word_distances in get_word_distances_for_sentence(sentence)
-        ]
+    return sorted(
+        reduce_word_distances(
+            [
+                word_distances
+                for sentence in book
+                for word_distances in get_word_distances_for_sentence(sentence)
+            ]
+        ),
+        key=lambda proximity_record: proximity_record[2],
     )
 
 
