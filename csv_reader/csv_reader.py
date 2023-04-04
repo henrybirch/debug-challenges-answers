@@ -28,6 +28,7 @@ Column = Union[
     List[Optional[List[Optional[str]]]],
     List[Optional[List[Optional[int]]]],
     List[Optional[List[Optional[float]]]],
+    List[List[None]],
 ]
 
 DataFrame = Dict[str, Column]
@@ -45,61 +46,130 @@ def parse_csv(text: List[str]) -> DataFrame:
             return False
         return True
 
-    def get_value_type_for_column(column: List[str]):
-        def get_value_type_single(
-            value: str,
-        ) -> Type[NoneType | str | int | float]:
-            if value in ("None", ""):
-                return NoneType
+    class TypeRepresentation:
+        def __init__(
+            self, type: Type[NoneType | str | int | float], is_list: bool
+        ):
+            self.type = type
+            self.is_list = is_list
 
-            for type in [int, float]:
-                if represent_type(type, value):
-                    return type
+        def __eq__(self, other):
+            return self.type is other.type and self.is_list is other.is_list
 
-            return str
+        def __repr__(self):
+            return f"({self.type}, {self.is_list})"
 
-        class TypeRepresentation:
-            def __init__(
-                self, type: Type[NoneType | str | int | float], is_list: bool
+    def get_value_type(
+        value: str,
+    ) -> Type[NoneType | str | int | float]:
+        if value in ("None", ""):
+            return NoneType
+        for type in [int, float]:
+            if represent_type(type, value):
+                return type
+
+        return str
+
+    def get_type_representation(value: str) -> TypeRepresentation:
+        first_type_pass = get_value_type(value)
+        if first_type_pass is not str:
+            return TypeRepresentation(first_type_pass, False)
+
+        if "|" not in value:
+            return TypeRepresentation(str, False)
+
+        value_types = [get_value_type(value) for value in value.split("|")]
+
+        for meta_type in [NoneType, str, float, int]:
+            if all(
+                value_type is meta_type or value_type is NoneType
+                for value_type in value_types
             ):
-                self.type = type
-                self.is_list = is_list
+                return TypeRepresentation(meta_type, True)
 
-            def __eq__(self, other):
-                return (
-                    self.type is other.type and self.is_list is other.is_list
-                )
+        return TypeRepresentation(str, True)
 
-        def get_value_type(value: str) -> TypeRepresentation:
-            first_type_pass = get_value_type_single(value)
+    def reduce_type_representations(
+        types: List[TypeRepresentation],
+    ) -> TypeRepresentation:
+        first_non_none_type: TypeRepresentation | None = None
+        is_array_column: bool = False
+        for value_type in types:
+            if first_non_none_type is None and value_type.type is not NoneType:
+                first_non_none_type = value_type
 
-            if first_type_pass is not str:
-                return TypeRepresentation(first_type_pass, False)
-
-            if "|" not in value:
+            if (
+                first_non_none_type is not None
+                and value_type.type is not NoneType
+                and first_non_none_type != value_type
+            ):
                 return TypeRepresentation(str, False)
+            is_array_column = is_array_column and value_type.is_list
 
-            value_types = [
-                get_value_type_single(value) for value in value.split("|")
-            ]
+        return first_non_none_type or TypeRepresentation(
+            NoneType, is_array_column
+        )
 
-            for meta_type in [NoneType, str, float, int]:
-                if all(
-                    value_type is meta_type or value_type is NoneType
-                    for value_type in value_types
-                ):
-                    return TypeRepresentation(meta_type, True)
+    def cast_value_to_type(
+        value: str, type_representation: TypeRepresentation
+    ) -> (
+        None
+        | str
+        | int
+        | float
+        | List[str]
+        | List[int]
+        | List[float]
+        | List[None]
+    ):
+        if type_representation.is_list:
+            split_value = value.split("|")
 
-        def reduce_types(
-            types: List[TypeRepresentation],
-        ) -> TypeRepresentation:
-            first_non_none_type: TypeRepresentation | None = None
-            for value_type in types:
-                if value_type.type is NoneType:
-                    continue
-                if (
-                    first_non_none_type is not None
-                    and first_non_none_type != value_type
-                ):
-                    return TypeRepresentation(str, False)
-            return first_non_none_type
+            if type_representation.type is NoneType:
+                return [None for _ in split_value]
+            if type_representation.type is str:
+                return split_value
+            return [
+                type_representation.type(item)
+                for item in split_value  # type: ignore
+            ]  # type: ignore
+
+        if type_representation.type is NoneType:
+            return None
+        if type_representation.type is str:
+            return value
+        return type_representation.type(value)  # type: ignore
+
+    def coerce_column_type(column: list[str]):
+        type_representations = [
+            get_type_representation(value) for value in column
+        ]
+        reduced_type = reduce_type_representations(type_representations)
+        return [cast_value_to_type(value, reduced_type) for value in column]
+
+    column_names = text[0].split(",")
+    number_of_columns = len(column_names)
+
+    columns: List[List] = [[] for column in column_names]
+    for i, row in enumerate(text[1:]):
+        split_row = row.split(",")
+        if len(split_row) != number_of_columns:
+            raise InvalidNumberOfColumnsError(f"Row number: {i + 1}")
+        for column_number in range(len(columns)):
+            columns[column_number].append(split_row[column_number])
+
+    return {
+        column_name: coerce_column_type(columns[i])
+        for i, column_name in enumerate(column_names)
+    }
+
+
+print(
+    parse_csv(
+        [
+            "hello,there,man",
+            "5|5|5|5,hello,5.5",
+            "4|4|4|4|4|4|4|4,mister,5.3",
+        ]
+    )
+)
