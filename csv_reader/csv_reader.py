@@ -147,20 +147,25 @@ def parse_csv(text: List[str]) -> DataFrame:
         reduced_type = reduce_type_representations(type_representations)
         return [cast_value_to_type(value, reduced_type) for value in column]
 
-    column_names = text[0].split(",")
-    number_of_columns = len(column_names)
+    def get_untyped_dataframe() -> DataFrame:
+        column_names = text[0].split(",")
+        number_of_columns = len(column_names)
 
-    columns: List[List] = [[] for column in column_names]
-    for i, row in enumerate(text[1:]):
-        split_row = row.split(",")
-        if len(split_row) != number_of_columns:
-            raise InvalidNumberOfColumnsError(f"Row number: {i + 1}")
-        for column_number in range(len(columns)):
-            columns[column_number].append(split_row[column_number])
+        columns: List[List] = [[] for column in column_names]
+        for i, row in enumerate(text[1:]):
+            split_row = row.split(",")
+            if len(split_row) != number_of_columns:
+                raise InvalidNumberOfColumnsError(f"Row number: {i + 1}")
+            for column_number in range(len(columns)):
+                columns[column_number].append(split_row[column_number])
+        return {
+            column_name: columns[i]
+            for i, column_name in enumerate(column_names)
+        }
 
     return {
-        column_name: coerce_column_type(columns[i])
-        for i, column_name in enumerate(column_names)
+        column_name: coerce_column_type(column)
+        for column_name, column in get_untyped_dataframe().items()
     }
 
 
