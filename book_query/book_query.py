@@ -9,7 +9,7 @@
 # they will not be in a record together in the list.
 
 # Note that one word can be in a sentence more than once.
-from typing import List, Tuple, Set, Dict
+from typing import List, Tuple, Set, Dict, TypeVar
 
 Word = str
 Sentence = List[Word]
@@ -33,12 +33,12 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
                 if id in ids_considered:
                     continue
 
-                ids_considered.add(id)
+                ids_considered.add(id)  # type: ignore
 
-                ordered_words = tuple(sorted((word_1.lower(), word_2.lower())))
+                ordered_words = tuple(sorted((word_1.lower(), word_2.lower())))  # type: ignore
 
                 distance = abs(i - j) - 1
-                word_distances.append(ordered_words + (distance,))
+                word_distances.append(ordered_words + (distance,))  # type: ignore
         return word_distances
 
     def reduce_word_distances(
