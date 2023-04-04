@@ -1,6 +1,6 @@
 # Write a function that takes a list of sentences (a book) and returns a list of (word, word, avg_proximity) tuples
 # where avg_proximity is the mean distance (as a float) between two words in all sentences in the entire book.
-# Ordered by avg_proximity smallest to largest. In "The red house" the distance between the and house is one.
+# Ordered by avg_proximity smallest to largest, word_1, word_2. In "The red house" the distance between the and house is one.
 
 # Your results should be case insensitive and there should only be one tuple per word-word pair.
 # The first word in the tuple should be the smallest alphanumerically out of the pair.
@@ -71,8 +71,9 @@ def get_proximity_records(book: Book) -> List[ProximityRecord]:
                 for word_distances in get_word_distances_for_sentence(sentence)
             ]
         ),
-        key=lambda proximity_record: proximity_record[2],
+        key=lambda proximity_record: (
+            proximity_record[2],
+            proximity_record[0],
+            proximity_record[1],
+        ),
     )
-
-
-print(get_proximity_records([["abba", "abba"], ["baab", "abba", "baab"]]))
