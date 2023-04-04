@@ -152,7 +152,7 @@ def parse_csv(text: List[str]) -> DataFrame:
         reduced_type = reduce_type_representations(type_representations)
         return [cast_value_to_type(value, reduced_type) for value in column]
 
-    def get_untyped_dataframe() -> DataFrame:
+    def get_untyped_dataframe() -> Dict[str, List[str]]:
         column_names = text[0].split(",")
         number_of_columns = len(column_names)
 
