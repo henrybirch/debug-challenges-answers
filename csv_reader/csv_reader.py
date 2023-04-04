@@ -28,7 +28,7 @@ Column = Union[
     List[Optional[List[Optional[str]]]],
     List[Optional[List[Optional[int]]]],
     List[Optional[List[Optional[float]]]],
-    List[List[None]],
+    List[Optional[List[None]]],
 ]
 
 DataFrame = Dict[str, Column]
