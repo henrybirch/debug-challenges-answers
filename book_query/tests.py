@@ -1,5 +1,5 @@
 import unittest
-from book_queries import get_proximity_records
+from book_query import get_proximity_records
 
 
 class Tests(unittest.TestCase):
