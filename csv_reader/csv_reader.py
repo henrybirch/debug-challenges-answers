@@ -10,6 +10,9 @@
 # Check every piece of data in a column/array to make sure the types are homogenous
 
 # Don't worry about edge cases: just get tests passing
+
+# Copy parse_csv into ChatGPT to get an overview of the helper functions.
+
 from types import NoneType
 from typing import (
     NewType,
