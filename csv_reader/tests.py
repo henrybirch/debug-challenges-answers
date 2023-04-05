@@ -31,6 +31,18 @@ class Tests(unittest.TestCase):
         result = parse_csv(["one", "5.5|3.4"])
         self.assertEqual(result, {"one": [[5.5, 3.4]]})
 
+    def test_pure_nones(self):
+        result = parse_csv(["one", ""])
+        self.assertEqual(result, {"one": [None]})
+
+    def test_empty_csv(self):
+        result = parse_csv([""])
+        self.assertEqual(result, {})
+
+    def test_empty_csv_mk2(self):
+        result = result = parse_csv([])
+        self.assertEqual(result, {})
+
 
 if __name__ == "__main__":
     unittest.main()
