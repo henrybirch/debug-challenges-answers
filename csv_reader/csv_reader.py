@@ -7,7 +7,9 @@
 # Lists should only be typed if the types they contain are homogenous.
 # e.g. 30|fifty should default to List[str], 30|20 can be List[int]
 
-# Check every piece of data in a column to make sure the types are homogenous
+# Check every piece of data in a column/array to make sure the types are homogenous
+
+# Don't worry about edge cases: just get tests passing
 from types import NoneType
 from typing import (
     NewType,
@@ -39,6 +41,9 @@ class InvalidNumberOfColumnsError(Exception):
 
 
 def parse_csv(text: List[str]) -> DataFrame:
+    if text in ([], [""]):
+        return {}
+
     def represent_type(t: Type[float | int], s: str) -> bool:
         try:
             t(s)
@@ -132,7 +137,7 @@ def parse_csv(text: List[str]) -> DataFrame:
             if type_representation.type is str:
                 return split_value
             return [
-                type_representation.type(item)
+                type_representation.type(item)  # type: ignore
                 if item not in ("", "None")
                 else None
                 for item in split_value  # type: ignore
@@ -172,20 +177,3 @@ def parse_csv(text: List[str]) -> DataFrame:
         column_name: coerce_column_type(column)
         for column_name, column in get_untyped_dataframe().items()
     }
-
-
-result = parse_csv(
-    [
-        "column_1,column_2,column_3",
-        "89,2.02,1|None|6|None",
-        "29,5.1,5|None|4|None",
-        "70,4.62,5|None|3|None",
-        "87,9.37,",
-        "73,1.75,",
-        "64,9.27,10|None|4|None",
-        "70,2.64,7|None|6|None",
-        "95,2.28,10|None|4|None",
-        "92,2.58,",
-        "79,7.02,",
-    ]
-)
