@@ -56,22 +56,3 @@ def markdown_to_html(markdown):
         result.append("</ul>")
 
     return "\n".join(result)
-
-
-if __name__ == "__main__":
-    markdown = """# Heading 1
-## Heading 2
-### Heading 3
-
-**bold text**
-
-*italic text*
-
-- List item 1
-- List item 2
-- List item 3
-
-[Google](https://www.google.com)
-"""
-    html = markdown_to_html(markdown)
-    print(html)
