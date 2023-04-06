@@ -1,5 +1,5 @@
 import unittest
-from markdown_to_html import markdown_to_html
+from markdown_to_html import markdown_to_html, convert_bold, convert_italic
 
 
 class TestMarkdownToHTML(unittest.TestCase):
@@ -58,6 +58,18 @@ class TestMarkdownToHTML(unittest.TestCase):
 
     def test_empty_input(self):
         self.assertEqual(markdown_to_html(""), "")
+
+    def test_convert_bold_trailing_space(self):
+        self.assertEqual(
+            convert_bold("This is **bold text**and more."),
+            "This is <b>bold text</b>and more.",
+        )
+
+    def test_convert_italic_trailing_space(self):
+        self.assertEqual(
+            convert_italic("This is *italic text*and more."),
+            "This is <i>italic text</i>and more.",
+        )
 
 
 if __name__ == "__main__":
